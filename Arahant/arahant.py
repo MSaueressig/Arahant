@@ -215,6 +215,42 @@ class EnergyAwareController(app_manager.RyuApp):
     def try_initialize(self):
         if self.topology_ready and self.critical_flows and self.hostsip:
             self.precompute_critical_paths()
+    
+    def is_path_awake(self, path):
+        for i in range(len(path) - 1):
+            if not self.link_states.get((path[i], path[i+1]), True):
+                return False
+        return True
+
+    def install_flow_along_path(self, flow_id, path):
+        src_ip, dst_ip, src_port, dst_port, protocol = flow_id
+        ip_proto = 6 if protocol == 'TCP' else 17 if protocol == 'UDP' else None
+    
+        for i in range(len(path) - 1):
+            s1, s2 = path[i], path[i+1]
+            out_port = self.adjacency[s1][s2]
+            datapath = self.datapaths.get(s1)
+            if not datapath:
+                continue
+    
+            parser = datapath.ofproto_parser
+            match_fields = {
+                'eth_type': 0x0800,
+                'ipv4_src': src_ip,
+                'ipv4_dst': dst_ip
+            }
+            if ip_proto:
+                match_fields['ip_proto'] = ip_proto
+                if protocol == 'TCP':
+                    match_fields['tcp_src'] = src_port
+                    match_fields['tcp_dst'] = dst_port
+                elif protocol == 'UDP':
+                    match_fields['udp_src'] = src_port
+                    match_fields['udp_dst'] = dst_port
+    
+            match = parser.OFPMatch(**match_fields)
+            actions = [parser.OFPActionOutput(out_port)]
+            self.add_flow(datapath, 10, match, actions)
 
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, MAIN_DISPATCHER)
@@ -254,6 +290,14 @@ class EnergyAwareController(app_manager.RyuApp):
             dst = link.dst
             self.links.append((src.dpid, dst.dpid, src.port_no, dst.port_no))
             self.link_states[(src.dpid, src.port_no)] = True  # active by default
+        
+        self.adjacency = {}  # Clear first
+        
+        for link in links:
+            src = link.src
+            dst = link.dst
+            self.adjacency.setdefault(src.dpid, {})[dst.dpid] = src.port_no
+
         
         self.logger.info(f"Topology updated: switches={len(self.switches)}, links={len(self.links)}")
 
@@ -349,5 +393,4 @@ if key not in self.critical_path_cache:
         self.wake_path_links(path)  # <-- Step 2
         self.install_flow_along_path(flow, path)
 """  
-
 
