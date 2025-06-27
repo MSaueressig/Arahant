@@ -1,0 +1,21 @@
+{
+  "critical_flows": [
+    {
+      "src_ip": "10.0.0.1",
+      "dst_ip": "10.0.0.2",
+      "src_port": 5001,
+      "dst_port": 80,
+      "protocol": "TCP"
+    },
+    {
+      "src_ip_prefix": "10.0.1.",
+      "dst_ip_prefix": "10.0.2.",
+      "protocol": "UDP"
+    },
+    {
+      "src_ip": "10.0.0.3",
+      "dst_ip": "10.0.0.4"
+    }
+  ]
+}
+
