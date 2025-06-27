@@ -78,7 +78,7 @@ Follow these steps to run Arahant:
 
 3. In a new terminal, navigate to the `Arahant` folder and start the network topology:
    ```bash
-   sudo python ./abacaxi.py
+   sudo python ./fattree.py
    ```
 
 ### Done!
