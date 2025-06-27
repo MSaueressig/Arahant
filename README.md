@@ -1,8 +1,7 @@
 
 # Arahant
 
-Arahant is a dynamic traffic management tool that leverages Software Defined Networking (SDN) to mitigate network congestion in data centers. By rerouting elephant flows and managing paths, it helps optimize network performance and efficiency.
-
+Arahant is a PRM in a EER environment. It was conceived as an exclusive approach for special flows and services that need full performance of the network and are considered worth spending more energy
 ## Prerequisites
 
 Before running Arahant, ensure that you have the following installed:
